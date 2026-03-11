@@ -1,29 +1,33 @@
 name: ML CI Pipeline
-on : [push]
+
+on:
+  push:
+    branches: [main]
 
 jobs:
-  build:
+  build-test:
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: docker_lr
+
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v3
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-    - name: Install Python
-      uses: actions/setup-python@v4
-      with:
-        python-version: '3.9'
+      - name: Install Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.9"
 
-    - name: Install dependencies
-      run: pip install -r requirements.txt
+      - name: Install dependencies
+        run: pip install -r requirements.txt
 
-    - name: Run Tests
-      run: pytest 
+      - name: Run tests
+        run: pytest
 
-    - name: Build Docker Image
-      run: docker build -t ml-devops-demo .
+      - name: Build Docker image
+        run: docker build -t ml-devops-demo:latest .
 
-    - name: Run Docker Container
-      run: docker run nl-devops-demo
-
-    - name: Deploy Container
-      run: docker run ml-devops-demo 
+      - name: Run container (smoke test)
+        run: docker run -d --name ml-devops-demo -p 5000:5000 ml-devops-demo:latest
